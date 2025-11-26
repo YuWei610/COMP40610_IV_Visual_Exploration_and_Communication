@@ -1,0 +1,15 @@
+{
+  "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+  "data": {
+    "values": [
+      {"region": "Eastern & Midland", "value": 10},
+      {"region": "Northern & Western", "value": 20},
+      {"region": "Southern", "value": 30}
+    ]
+  },
+  "mark": "bar",
+  "encoding": {
+    "x": {"field": "region", "type": "nominal"},
+    "y": {"field": "value", "type": "quantitative"}
+  }
+}
