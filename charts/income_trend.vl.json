@@ -1,0 +1,64 @@
+{
+  "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+  "title": "Income Trends by NUTS2 Region (2014–2023)",
+  "params": [
+    {
+      "name": "metric",
+      "value": "Disposable Income per Person (Euro)",
+      "bind": {
+        "input": "select",
+        "options": [
+          "Disposable Income per Person (Euro)",
+          "Total Income per Person (Euro)",
+          "Disposable Household Income (Million)",
+          "Total Household Income (Million)"
+        ],
+        "name": "Select Metric: "
+      }
+    }
+  ],
+  "data": {
+    "url": "https://raw.githubusercontent.com/YuWei610/COMP40610_IV_Visual_Exploration_and_Communication/main/charts/RAA04_final_2014_2023.csv",
+    "format": {"type": "csv"}
+  },
+  "transform": [
+    {
+      "filter": "datum['NUTS 2 Region'] == 'Eastern and Midland' || datum['NUTS 2 Region'] == 'Northern and Western' || datum['NUTS 2 Region'] == 'Southern'"
+    },
+    {"filter": "datum['Year'] >= 2014 && datum['Year'] <= 2023"},
+    {
+      "fold": [
+        "Disposable Income per Person (Euro)",
+        "Total Income per Person (Euro)",
+        "Disposable Household Income (Million)",
+        "Total Household Income (Million)"
+      ],
+      "as": ["metric", "value"]
+    },
+    {"filter": "datum.metric == metric"}
+  ],
+  "width": 1000,
+  "height": 400,
+  "mark": {"type": "line", "point": true},
+  "encoding": {
+    "x": {
+      "field": "Year",
+      "type": "ordinal",
+      "axis": {"title": "Year", "labelAngle": 0}
+    },
+    "y": {
+      "field": "value",
+      "type": "quantitative",
+      "axis": {"title": {"expr": "metric"}},
+      "scale": {"zero": false}
+    },
+    "color": {"field": "NUTS 2 Region", "type": "nominal", "title": "Region"},
+    "tooltip": [
+      {"field": "Year", "type": "ordinal"},
+      {"field": "NUTS 2 Region", "type": "nominal"},
+      {"field": "metric", "type": "nominal"},
+      {"field": "value", "type": "quantitative", "format": ","}
+    ]
+  },
+  "config": {}
+}

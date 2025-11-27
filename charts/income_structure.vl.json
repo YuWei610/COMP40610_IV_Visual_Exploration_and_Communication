@@ -1,0 +1,72 @@
+{
+  "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+  "data": {
+    "url": "https://raw.githubusercontent.com/YuWei610/COMP40610_IV_Visual_Exploration_and_Communication/main/charts/RAA04_final_2014_2023.csv",
+    "format": {"type": "csv"}
+  },
+  "title": "Ireland Income Structure: Compensation + Rent (Million Euro, Share %) – 2014–2023",
+  "transform": [
+    {"filter": "datum['NUTS 2 Region'] === 'Ireland'"},
+    {
+      "fold": [
+        "Compensation of Employees (Million)",
+        "Rent of dwellings (Million)"
+      ],
+      "as": ["Metric", "Value"]
+    },
+    {
+      "joinaggregate": [{"op": "sum", "field": "Value", "as": "TotalValue"}],
+      "groupby": ["Year"]
+    },
+    {"calculate": "datum.Value / datum.TotalValue", "as": "Share"},
+    {
+      "window": [{"op": "sum", "field": "Value", "as": "Value_end"}],
+      "groupby": ["Year"],
+      "sort": [{"field": "Metric"}]
+    },
+    {"calculate": "datum.Value_end - datum.Value", "as": "Value_start"},
+    {
+      "calculate": "(datum.Value_start + datum.Value_end) / 2",
+      "as": "Value_center"
+    }
+  ],
+  "width": 500,
+  "height": 520,
+  "layer": [
+    {
+      "mark": "bar",
+      "encoding": {
+        "y": {"field": "Year", "type": "ordinal", "sort": "descending"},
+        "x": {
+          "field": "Value",
+          "type": "quantitative",
+          "stack": "zero",
+          "title": "Million Euro"
+        },
+        "color": {"field": "Metric", "type": "nominal", "title": "Income Type"},
+        "tooltip": [
+          {"field": "Year", "title": "Year"},
+          {"field": "Metric", "title": "Income Type"},
+          {"field": "Value", "title": "Amount (Million)", "format": ",.0f"},
+          {"field": "TotalValue", "title": "Total (Million)", "format": ",.0f"},
+          {"field": "Share", "title": "Share (%)", "format": ".1%"}
+        ]
+      }
+    },
+    {
+      "mark": {
+        "type": "text",
+        "baseline": "middle",
+        "align": "center",
+        "fill": "white",
+        "fontSize": 10
+      },
+      "encoding": {
+        "y": {"field": "Year", "type": "ordinal", "sort": "descending"},
+        "x": {"field": "Value_center", "type": "quantitative"},
+        "text": {"field": "Share", "format": ".1%"}
+      }
+    }
+  ],
+  "config": {}
+}
