@@ -1,0 +1,84 @@
+{
+  "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+  "width": 600,
+  "height": 800,
+  "projection": {"type": "identity", "reflectY": true},
+  "params": [
+    {
+      "name": "metric",
+      "value": "Disposable Income per Person (Euro)",
+      "bind": {
+        "input": "select",
+        "options": [
+          "Disposable Income per Person (Euro)",
+          "Disposable Household Income (Million)"
+        ],
+        "name": "Select Indicator: "
+      }
+    }
+  ],
+  "data": {
+    "url": "https://raw.githubusercontent.com/YuWei610/COMP40610_IV_Visual_Exploration_and_Communication/main/charts/NUTS2_Boundaries_100m.geojson",
+    "format": {"type": "json", "property": "features"}
+  },
+  "transform": [
+    {"calculate": "datum.properties.NUTS2NAME", "as": "NUTS2NAME"},
+    {
+      "lookup": "NUTS2NAME",
+      "from": {
+        "data": {
+          "url": "https://raw.githubusercontent.com/YuWei610/COMP40610_IV_Visual_Exploration_and_Communication/main/charts/NUTS2_growth_all_indicators_2014_2023.csv"
+        },
+        "key": "Region",
+        "fields": [{"signal": "metric + ' (Growth %)'"}]
+      },
+      "as": ["GrowthValue"]
+    },
+    {
+      "lookup": "NUTS2NAME",
+      "from": {
+        "data": {
+          "url": "https://raw.githubusercontent.com/YuWei610/COMP40610_IV_Visual_Exploration_and_Communication/main/charts/2014_only.csv"
+        },
+        "key": "NUTS 2 Region",
+        "fields": [{"signal": "metric"}]
+      },
+      "as": ["Value2014"]
+    },
+    {
+      "lookup": "NUTS2NAME",
+      "from": {
+        "data": {
+          "url": "https://raw.githubusercontent.com/YuWei610/COMP40610_IV_Visual_Exploration_and_Communication/main/charts/2023_only.csv"
+        },
+        "key": "NUTS 2 Region",
+        "fields": [{"signal": "metric"}]
+      },
+      "as": ["Value2023"]
+    }
+  ],
+  "mark": {"type": "geoshape", "stroke": "white", "strokeWidth": 1},
+  "encoding": {
+    "color": {
+      "field": "GrowthValue",
+      "type": "quantitative",
+      "title": {"signal": "metric +' (2014–2023 Growth % )'"},
+      "scale": {"scheme": "blues"},
+      "legend": {
+        "titleLimit": 700,
+        "titleLineHeight": 12,
+        "legendX": 250,
+        "legendY": -100,
+        "orient": "none",
+        "titleAnchor": "end"
+      }
+    },
+    "tooltip": [
+      {"field": "NUTS2NAME", "title": "Region"},
+      {"field": "Value2014", "title": "2014 Value", "format": ",.2f"},
+      {"field": "Value2023", "title": "2023 Value", "format": ",.2f"},
+      {"field": "GrowthValue", "title": "Growth %", "format": ".2f"}
+    ]
+  },
+  "config": {}
+}
