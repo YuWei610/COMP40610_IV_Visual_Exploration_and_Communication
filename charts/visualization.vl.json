@@ -1,0 +1,296 @@
+{
+  "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+
+  "vconcat": [
+
+    {
+      "hconcat": [
+
+        {
+          "title": "Ireland Income Structure: Compensation + Rent (Million Euro, Share %) – 2014–2023",
+          "data": {
+            "url": "https://raw.githubusercontent.com/YuWei610/COMP40610_IV_Visual_Exploration_and_Communication/main/charts/RAA04_final_2014_2023.csv",
+            "format": {"type": "csv"}
+          },
+          "transform": [
+            {"filter": "datum['NUTS 2 Region'] == 'Ireland'"},
+            {
+              "fold": [
+                "Compensation of Employees (Million)",
+                "Rent of dwellings (Million)"
+              ],
+              "as": ["Metric", "Value"]
+            },
+            {
+              "joinaggregate": [
+                {"op": "sum", "field": "Value", "as": "TotalValue"}
+              ],
+              "groupby": ["Year"]
+            },
+            {"calculate": "datum.Value / datum.TotalValue", "as": "Share"},
+            {
+              "window": [{"op": "sum", "field": "Value", "as": "Value_end"}],
+              "groupby": ["Year"],
+              "sort": [{"field": "Metric"}]
+            },
+            {"calculate": "datum.Value_end - datum.Value", "as": "Value_start"},
+            {"calculate": "(datum.Value_start + datum.Value_end) / 2", "as": "Value_center"}
+          ],
+          "width": "container",
+          "height": 350,
+          "layer": [
+            {
+              "mark": "bar",
+              "encoding": {
+                "y": {"field": "Year", "type": "ordinal", "sort": "descending"},
+                "x": {
+                  "field": "Value",
+                  "type": "quantitative",
+                  "stack": "zero",
+                  "title": "Million Euro"
+                },
+                "color": {
+                  "field": "Metric",
+                  "type": "nominal",
+                  "title": "Income Type"
+                },
+                "tooltip": [
+                  {"field": "Year"},
+                  {"field": "Metric"},
+                  {"field": "Value", "format": ",.0f"},
+                  {"field": "TotalValue", "format": ",.0f"},
+                  {"field": "Share", "format": ".1%"}
+                ]
+              }
+            },
+            {
+              "mark": {
+                "type": "text",
+                "baseline": "middle",
+                "align": "center",
+                "fill": "white",
+                "fontSize": 10
+              },
+              "encoding": {
+                "y": {"field": "Year", "type": "ordinal", "sort": "descending"},
+                "x": {"field": "Value_center", "type": "quantitative"},
+                "text": {"field": "Share", "format": ".1%"}
+              }
+            }
+          ]
+        },
+
+        {
+          "width": "container",
+          "height": 350,
+          "projection": {"type": "identity", "reflectY": true},
+
+          "params": [
+            {
+              "name": "mapMetricSel",
+              "select": {
+                "type": "point",
+                "fields": ["_metric"],
+              },
+              "bind": {
+                "input": "select",
+                "options": [
+                  "Disposable Income per Person (Euro)",
+                  "Disposable Household Income (Million)"
+                ],
+                "name": "2014–2023 Growth % Indicator:"
+              }
+            },
+            {
+              "name": "region_select",
+              "select": {
+                "type": "point",
+                "fields": ["NUTS2NAME"],
+                "toggle": true
+              }
+            }
+          ],
+
+          "data": {
+            "url": "https://raw.githubusercontent.com/YuWei610/COMP40610_IV_Visual_Exploration_and_Communication/main/charts/NUTS2_Boundaries_100m.geojson",
+            "format": {"type": "json", "property": "features"}
+          },
+
+          "transform": [
+            {"calculate": "datum.properties.NUTS2NAME", "as": "NUTS2NAME"},
+
+            {
+              "lookup": "NUTS2NAME",
+              "from": {
+                "data": {
+                  "url": "https://raw.githubusercontent.com/YuWei610/COMP40610_IV_Visual_Exploration_and_Communication/main/charts/NUTS2_growth_all_indicators_2014_2023.csv"
+                },
+                "key": "Region",
+                "fields": [
+                  "Disposable Income per Person (Euro) (Growth %)",
+                  "Disposable Household Income (Million) (Growth %)"
+                ]
+              },
+              "as": ["IncPP_Growth", "HHInc_Growth"]
+            },
+
+            {
+              "lookup": "NUTS2NAME",
+              "from": {
+                "data": {
+                  "url": "https://raw.githubusercontent.com/YuWei610/COMP40610_IV_Visual_Exploration_and_Communication/main/charts/2014_only.csv"
+                },
+                "key": "NUTS 2 Region",
+                "fields": [
+                  "Disposable Income per Person (Euro)",
+                  "Disposable Household Income (Million)"
+                ]
+              },
+              "as": ["IncPP_2014", "HHInc_2014"]
+            },
+
+            {
+              "lookup": "NUTS2NAME",
+              "from": {
+                "data": {
+                  "url": "https://raw.githubusercontent.com/YuWei610/COMP40610_IV_Visual_Exploration_and_Communication/main/charts/2023_only.csv"
+                },
+                "key": "NUTS 2 Region",
+                "fields": [
+                  "Disposable Income per Person (Euro)",
+                  "Disposable Household Income (Million)"
+                ]
+              },
+              "as": ["IncPP_2023", "HHInc_2023"]
+            },
+
+            {
+              "calculate": "datum.IncPP_Growth",
+              "as": "Disposable Income per Person (Euro)"
+            },
+            {
+              "calculate": "datum.HHInc_Growth",
+              "as": "Disposable Household Income (Million)"
+            },
+
+            {
+              "fold": [
+                "Disposable Income per Person (Euro)",
+                "Disposable Household Income (Million)"
+              ],
+              "as": ["_metric", "_value"]
+            },
+
+            {"filter": {"param": "mapMetricSel"}}
+          ],
+
+          "mark": {"type": "geoshape"},
+
+          "encoding": {
+            "color": {
+              "field": "_value",
+              "type": "quantitative",
+              "title": "2014–2023 Growth %",
+              "scale": {"scheme": "blues"}
+            },
+            "stroke": {
+              "condition": {
+                "param": "region_select",
+                "empty": false,
+                "value": "red"
+              },
+              "value": "white"
+            },
+            "strokeWidth": {
+              "condition": {
+                "param": "region_select",
+                "empty": false,
+                "value": 1
+              },
+              "value": 1
+            },
+            "tooltip": [
+              {"field": "NUTS2NAME", "title": "Region"},
+              {"field": "_value", "title": "Growth %", "format": ".2f"}
+            ]
+          }
+        }
+      ]
+    },
+
+    {
+      "title": "Income Trends by NUTS2 Region (2014–2023)",
+
+      "params": [
+        {
+          "name": "lineMetricSel",
+          "select": {"type": "point", "fields": ["metric"]},
+          "bind": {
+            "input": "select",
+            "options": [
+              "Disposable Income per Person (Euro)",
+              "Total Income per Person (Euro)",
+              "Disposable Household Income (Million)",
+              "Total Household Income (Million)"
+            ],
+            "name": "Income Trends Indicator:"
+          }
+        }
+      ],
+
+      "data": {
+        "url": "https://raw.githubusercontent.com/YuWei610/COMP40610_IV_Visual_Exploration_and_Communication/main/charts/RAA04_final_2014_2023.csv",
+        "format": {"type": "csv"}
+      },
+
+      "transform": [
+        {"filter": "datum['NUTS 2 Region'] != 'Ireland'"},
+        {"filter": "datum['Year'] >= 2014 && datum['Year'] <= 2023"},
+        {
+          "fold": [
+            "Disposable Income per Person (Euro)",
+            "Total Income per Person (Euro)",
+            "Disposable Household Income (Million)",
+            "Total Household Income (Million)"
+          ],
+          "as": ["metric", "value"]
+        },
+        {"filter": {"param": "lineMetricSel"}}
+      ],
+
+      "width": 1000,
+      "height": 150,
+
+      "mark": {"type": "line", "point": true},
+
+      "encoding": {
+        "x": {
+          "field": "Year",
+          "type": "ordinal",
+          "axis": {"title": "Year", "labelAngle": 0}
+        },
+        "y": {
+          "field": "value",
+          "type": "quantitative",
+          "axis": {"title": "Value"},
+          "scale": {"zero": false}
+        },
+        "color": {
+          "field": "NUTS 2 Region",
+          "type": "nominal",
+          "title": "Region",
+          "legend": {"orient": "bottom"}
+        },
+        "tooltip": [
+          {"field": "Year"},
+          {"field": "NUTS 2 Region"},
+          {"field": "metric"},
+          {"field": "value", "format": ","}
+        ]
+      }
+    }
+
+  ],
+
+  "config": {}
+}
