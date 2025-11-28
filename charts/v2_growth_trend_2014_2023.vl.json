@@ -3,6 +3,7 @@
   "width": 600,
   "height": 800,
   "projection": {"type": "identity", "reflectY": true},
+
   "params": [
     {
       "name": "metric",
@@ -21,12 +22,15 @@
       "select": {"type": "point", "fields": ["NUTS2NAME"], "toggle": true}
     }
   ],
+
   "data": {
     "url": "https://raw.githubusercontent.com/YuWei610/COMP40610_IV_Visual_Exploration_and_Communication/main/charts/NUTS2_Boundaries_100m.geojson",
     "format": {"type": "json", "property": "features"}
   },
+
   "transform": [
     {"calculate": "datum.properties.NUTS2NAME", "as": "NUTS2NAME"},
+
     {
       "lookup": "NUTS2NAME",
       "from": {
@@ -34,10 +38,17 @@
           "url": "https://raw.githubusercontent.com/YuWei610/COMP40610_IV_Visual_Exploration_and_Communication/main/charts/NUTS2_growth_all_indicators_2014_2023.csv"
         },
         "key": "Region",
-        "fields": [{"signal": "metric + ' (Growth %)'"}]
+        "fields": [
+          "Disposable Income per Person (Euro) (Growth %)",
+          "Disposable Household Income (Million) (Growth %)"
+        ]
       },
-      "as": ["GrowthValue"]
+      "as": [
+        "IncPP_Growth",
+        "HHInc_Growth"
+      ]
     },
+
     {
       "lookup": "NUTS2NAME",
       "from": {
@@ -45,10 +56,17 @@
           "url": "https://raw.githubusercontent.com/YuWei610/COMP40610_IV_Visual_Exploration_and_Communication/main/charts/2014_only.csv"
         },
         "key": "NUTS 2 Region",
-        "fields": [{"signal": "metric"}]
+        "fields": [
+          "Disposable Income per Person (Euro)",
+          "Disposable Household Income (Million)"
+        ]
       },
-      "as": ["Value2014"]
+      "as": [
+        "IncPP_2014",
+        "HHInc_2014"
+      ]
     },
+
     {
       "lookup": "NUTS2NAME",
       "from": {
@@ -56,12 +74,33 @@
           "url": "https://raw.githubusercontent.com/YuWei610/COMP40610_IV_Visual_Exploration_and_Communication/main/charts/2023_only.csv"
         },
         "key": "NUTS 2 Region",
-        "fields": [{"signal": "metric"}]
+        "fields": [
+          "Disposable Income per Person (Euro)",
+          "Disposable Household Income (Million)"
+        ]
       },
-      "as": ["Value2023"]
+      "as": [
+        "IncPP_2023",
+        "HHInc_2023"
+      ]
+    },
+
+    {
+      "calculate": "metric == 'Disposable Income per Person (Euro)' ? datum.IncPP_Growth : datum.HHInc_Growth",
+      "as": "GrowthValue"
+    },
+    {
+      "calculate": "metric == 'Disposable Income per Person (Euro)' ? datum.IncPP_2014 : datum.HHInc_2014",
+      "as": "Value2014"
+    },
+    {
+      "calculate": "metric == 'Disposable Income per Person (Euro)' ? datum.IncPP_2023 : datum.HHInc_2023",
+      "as": "Value2023"
     }
   ],
+
   "mark": {"type": "geoshape"},
+
   "encoding": {
     "stroke": {
       "condition": {"param": "region_select", "empty": false, "value": "red"},
@@ -71,26 +110,27 @@
       "condition": {"param": "region_select", "empty": false, "value": 1},
       "value": 1
     },
+
     "color": {
       "field": "GrowthValue",
       "type": "quantitative",
-      "title": {"signal": "metric + ' (2014–2023 Growth % )'"},
+      "title": "2014–2023 Growth %",
       "scale": {"scheme": "blues"},
       "legend": {
         "titleLimit": 700,
         "titleLineHeight": 12,
-        "legendX": 250,
+        "legendX": 450,
         "legendY": -100,
         "orient": "none",
         "titleAnchor": "end"
       }
     },
+
     "tooltip": [
       {"field": "NUTS2NAME", "title": "Region"},
       {"field": "Value2014", "title": "2014 Value", "format": ",.2f"},
       {"field": "Value2023", "title": "2023 Value", "format": ",.2f"},
       {"field": "GrowthValue", "title": "Growth %", "format": ".2f"}
     ]
-  },
-  "config": {}
+  }
 }
