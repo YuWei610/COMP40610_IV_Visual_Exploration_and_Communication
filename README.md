@@ -3,7 +3,6 @@
 Title: Interactive Irish Income Explorer  
 Module: COMP40610 – Visual Exploration and Communication  
 Student: Yu-Wei Lin  
-Student Number: 24200439  
 
 ---
 
@@ -39,6 +38,7 @@ Software Requirements
 - A modern web browser (Chrome, Firefox, Edge)  
 - Internet access to load external GeoJSON data  
 - Vega Lite (JSON specification included)
+  https://vega.github.io/editor/#/edited
 
 ---
 
