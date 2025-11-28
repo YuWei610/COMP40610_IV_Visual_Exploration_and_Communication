@@ -2,18 +2,18 @@
   "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
 
   "vconcat": [
-
     {
       "hconcat": [
-
         {
           "title": "Ireland Income Structure: Compensation + Rent (Million Euro, Share %) – 2014–2023",
+
           "data": {
             "url": "https://raw.githubusercontent.com/YuWei610/COMP40610_IV_Visual_Exploration_and_Communication/main/charts/RAA04_final_2014_2023.csv",
-            "format": {"type": "csv"}
+            "format": { "type": "csv" }
           },
+
           "transform": [
-            {"filter": "datum['NUTS 2 Region'] == 'Ireland'"},
+            { "filter": "datum['NUTS 2 Region'] == 'Ireland'" },
             {
               "fold": [
                 "Compensation of Employees (Million)",
@@ -23,26 +23,38 @@
             },
             {
               "joinaggregate": [
-                {"op": "sum", "field": "Value", "as": "TotalValue"}
+                { "op": "sum", "field": "Value", "as": "TotalValue" }
               ],
               "groupby": ["Year"]
             },
-            {"calculate": "datum.Value / datum.TotalValue", "as": "Share"},
+            { "calculate": "datum.Value / datum.TotalValue", "as": "Share" },
             {
-              "window": [{"op": "sum", "field": "Value", "as": "Value_end"}],
+              "window": [{ "op": "sum", "field": "Value", "as": "Value_end" }],
               "groupby": ["Year"],
-              "sort": [{"field": "Metric"}]
+              "sort": [{ "field": "Metric" }]
             },
-            {"calculate": "datum.Value_end - datum.Value", "as": "Value_start"},
-            {"calculate": "(datum.Value_start + datum.Value_end) / 2", "as": "Value_center"}
+            {
+              "calculate": "datum.Value_end - datum.Value",
+              "as": "Value_start"
+            },
+            {
+              "calculate": "(datum.Value_start + datum.Value_end) / 2",
+              "as": "Value_center"
+            }
           ],
-          "width": "container",
+
+          "width": 450,
           "height": 350,
+
           "layer": [
             {
               "mark": "bar",
               "encoding": {
-                "y": {"field": "Year", "type": "ordinal", "sort": "descending"},
+                "y": {
+                  "field": "Year",
+                  "type": "ordinal",
+                  "sort": "descending"
+                },
                 "x": {
                   "field": "Value",
                   "type": "quantitative",
@@ -55,14 +67,15 @@
                   "title": "Income Type"
                 },
                 "tooltip": [
-                  {"field": "Year"},
-                  {"field": "Metric"},
-                  {"field": "Value", "format": ",.0f"},
-                  {"field": "TotalValue", "format": ",.0f"},
-                  {"field": "Share", "format": ".1%"}
+                  { "field": "Year" },
+                  { "field": "Metric" },
+                  { "field": "Value", "format": ",.0f" },
+                  { "field": "TotalValue", "format": ",.0f" },
+                  { "field": "Share", "format": ".1%" }
                 ]
               }
             },
+
             {
               "mark": {
                 "type": "text",
@@ -72,26 +85,27 @@
                 "fontSize": 10
               },
               "encoding": {
-                "y": {"field": "Year", "type": "ordinal", "sort": "descending"},
-                "x": {"field": "Value_center", "type": "quantitative"},
-                "text": {"field": "Share", "format": ".1%"}
+                "y": {
+                  "field": "Year",
+                  "type": "ordinal",
+                  "sort": "descending"
+                },
+                "x": { "field": "Value_center", "type": "quantitative" },
+                "text": { "field": "Share", "format": ".1%" }
               }
             }
           ]
         },
 
         {
-          "width": "container",
+          "width": 450,
           "height": 350,
-          "projection": {"type": "identity", "reflectY": true},
+          "projection": { "type": "identity", "reflectY": true },
 
           "params": [
             {
               "name": "mapMetricSel",
-              "select": {
-                "type": "point",
-                "fields": ["_metric"],
-              },
+              "select": { "type": "point", "fields": ["_metric"] },
               "bind": {
                 "input": "select",
                 "options": [
@@ -113,11 +127,11 @@
 
           "data": {
             "url": "https://raw.githubusercontent.com/YuWei610/COMP40610_IV_Visual_Exploration_and_Communication/main/charts/NUTS2_Boundaries_100m.geojson",
-            "format": {"type": "json", "property": "features"}
+            "format": { "type": "json", "property": "features" }
           },
 
           "transform": [
-            {"calculate": "datum.properties.NUTS2NAME", "as": "NUTS2NAME"},
+            { "calculate": "datum.properties.NUTS2NAME", "as": "NUTS2NAME" },
 
             {
               "lookup": "NUTS2NAME",
@@ -181,17 +195,26 @@
               "as": ["_metric", "_value"]
             },
 
-            {"filter": {"param": "mapMetricSel"}}
+            { "filter": { "param": "mapMetricSel" } },
+
+            {
+              "calculate": "mapMetricSel === 'Disposable Income per Person (Euro)' ? datum.IncPP_2014 : datum.HHInc_2014",
+              "as": "Value_2014"
+            },
+            {
+              "calculate": "mapMetricSel === 'Disposable Income per Person (Euro)' ? datum.IncPP_2023 : datum.HHInc_2023",
+              "as": "Value_2023"
+            }
           ],
 
-          "mark": {"type": "geoshape"},
+          "mark": { "type": "geoshape" },
 
           "encoding": {
             "color": {
               "field": "_value",
               "type": "quantitative",
-              "title": "2014–2023 Growth %",
-              "scale": {"scheme": "blues"}
+              "title": "Income 2014–2023 Growth %",
+              "scale": { "scheme": "blues" }
             },
             "stroke": {
               "condition": {
@@ -210,8 +233,10 @@
               "value": 1
             },
             "tooltip": [
-              {"field": "NUTS2NAME", "title": "Region"},
-              {"field": "_value", "title": "Growth %", "format": ".2f"}
+              { "field": "NUTS2NAME", "title": "Region" },
+              { "field": "Value_2014", "title": "2014 Value", "format": "," },
+              { "field": "Value_2023", "title": "2023 Value", "format": "," },
+              { "field": "_value", "title": "Growth %", "format": ".2f" }
             ]
           }
         }
@@ -224,7 +249,7 @@
       "params": [
         {
           "name": "lineMetricSel",
-          "select": {"type": "point", "fields": ["metric"]},
+          "select": { "type": "point", "fields": ["metric"] },
           "bind": {
             "input": "select",
             "options": [
@@ -240,12 +265,12 @@
 
       "data": {
         "url": "https://raw.githubusercontent.com/YuWei610/COMP40610_IV_Visual_Exploration_and_Communication/main/charts/RAA04_final_2014_2023.csv",
-        "format": {"type": "csv"}
+        "format": { "type": "csv" }
       },
 
       "transform": [
-        {"filter": "datum['NUTS 2 Region'] != 'Ireland'"},
-        {"filter": "datum['Year'] >= 2014 && datum['Year'] <= 2023"},
+        { "filter": "datum['NUTS 2 Region'] != 'Ireland'" },
+        { "filter": "datum['Year'] >= 2014 && datum['Year'] <= 2023" },
         {
           "fold": [
             "Disposable Income per Person (Euro)",
@@ -255,42 +280,39 @@
           ],
           "as": ["metric", "value"]
         },
-        {"filter": {"param": "lineMetricSel"}}
+        { "filter": { "param": "lineMetricSel" } }
       ],
 
-      "width": 1000,
-      "height": 150,
+      "width": 900,
+      "height": 180,
 
-      "mark": {"type": "line", "point": true},
+      "mark": { "type": "line", "point": true },
 
       "encoding": {
         "x": {
           "field": "Year",
           "type": "ordinal",
-          "axis": {"title": "Year", "labelAngle": 0}
+          "axis": { "title": "Year", "labelAngle": 0 }
         },
         "y": {
           "field": "value",
           "type": "quantitative",
-          "axis": {"title": "Value"},
-          "scale": {"zero": false}
+          "axis": { "title": "Value" },
+          "scale": { "zero": false }
         },
         "color": {
           "field": "NUTS 2 Region",
           "type": "nominal",
           "title": "Region",
-          "legend": {"orient": "bottom"}
+          "legend": { "orient": "bottom" }
         },
         "tooltip": [
-          {"field": "Year"},
-          {"field": "NUTS 2 Region"},
-          {"field": "metric"},
-          {"field": "value", "format": ","}
+          { "field": "Year" },
+          { "field": "NUTS 2 Region" },
+          { "field": "metric" },
+          { "field": "value", "format": "," }
         ]
       }
     }
-
-  ],
-
-  "config": {}
+  ]
 }
